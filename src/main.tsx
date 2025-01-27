@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from "react-router";
@@ -9,18 +8,24 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { Layout } from './components/ui/layout.tsx';
-import { router } from './routes.tsx';
+
+import { router } from '@/routes.tsx';
+
+import { AuthProvider } from '@/context/auth-context.tsx';
+import { ModalProvider } from '@/context/modal-context.tsx';
+import { AlertDialogProvider } from '@/context/alert-dialog-context.tsx';
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Layout>
-        <RouterProvider router={router} />
-      </Layout>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </StrictMode>,
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ModalProvider>
+        <AlertDialogProvider>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AlertDialogProvider>
+      </ModalProvider>
+    </AuthProvider>
+  </QueryClientProvider>
 )

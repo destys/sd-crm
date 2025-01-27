@@ -13,8 +13,9 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Outlet } from "react-router"
 
-export const Layout = ({ children }: { children: React.ReactNode }) => {
+export const Layout = () => {
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -38,8 +39,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                         </Breadcrumb>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                    {children}
+                <div className="flex flex-1 flex-col gap-4 p-4">
+                    <Outlet />
                 </div>
             </SidebarInset>
         </SidebarProvider>
