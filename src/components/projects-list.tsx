@@ -1,9 +1,8 @@
-import { EditIcon, EyeIcon, Loader2, Trash2Icon } from "lucide-react";
+import { EyeIcon, Loader2, PhoneOutgoingIcon, Trash2Icon } from "lucide-react";
 
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
@@ -12,32 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/use-projects";
 
-import { useModal } from "@/context/modal-context";
 import { useAlertDialog } from "@/context/alert-dialog-context";
 import { NavLink } from "react-router";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 
 export const ProjectsList = () => {
     const { data, deleteProject, isLoading } = useProjects();
-    const { openModal } = useModal();
+
     const { showConfirmation } = useAlertDialog();
 
-    const handleEdit = (projectId: string) => {
-        const project = data?.find((item) => item.documentId === projectId);
-        if (project) {
-            openModal("editProject", {
-                title: "Редактирование проекта",
-                description: "Измените данные проекта и сохраните изменения.",
-                content: (
-                    <div>
-                        {/* Форма редактирования проекта */}
-                        <p>Здесь будет форма редактирования для проекта {project.title}</p>
-                    </div>
-                ),
-                footer: (
-                    <Button onClick={() => console.log("Save changes")}>Сохранить изменения</Button>
-                ),
-            });
-        }
+    const statusVariants: Record<string, 'outline' | 'waiting' | 'default' | 'secondary'> = {
+        'В очереди': 'waiting',
+        'В работе': 'default',
+        'Завершен': 'secondary',
     };
 
     const handleDelete = async (projectId: string) => {
@@ -55,7 +42,6 @@ export const ProjectsList = () => {
 
     return (
         <div>
-            <h1>Проекты</h1>
 
             {isLoading ? (
                 <div className="flex justify-center items-center min-h-96 w-full">
@@ -63,12 +49,13 @@ export const ProjectsList = () => {
                 </div>
             ) : (
                 <Table>
-                    <TableCaption>Список ваших проектов.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[100px]">#</TableHead>
                             <TableHead>Название</TableHead>
-                            <TableHead>Method</TableHead>
+                            <TableHead>Контакт</TableHead>
+                            <TableHead>Клиент</TableHead>
+                            <TableHead>Статус</TableHead>
                             <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -76,8 +63,44 @@ export const ProjectsList = () => {
                         {data?.map((item, index) => (
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium">{index + 1}</TableCell>
-                                <TableCell>{item.title}</TableCell>
-                                <TableCell>Credit Card</TableCell>
+                                <TableCell className="text-xs lg:text-lg font-bold">{item.title}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        {item.client ? (
+                                            <>
+                                                <a href={`tel:${item.client.phone}`} className="flex items-center gap-2 text-sm">
+                                                    <PhoneOutgoingIcon className="flex-shrink-0 basis-4 size-4" />
+                                                    <span className="hidden lg:block">{item.client.phone}</span>
+                                                </a>
+
+                                                <a href={`https://wa.me/${item.client.phone?.replace(/[^+\d]/g, '')}`} target="_blank" className="flex-shrink-0 basis-4">
+                                                    <img src="/whatsapp.png" alt="whatsapp" className="size-4" />
+                                                </a>
+                                                <a href={`https://t.me/${item.client.phone?.replace(/[^+\d]/g, '')}`} target="_blank" className="flex-shrink-0 basis-4">
+                                                    <img src="/telegram.png" alt="telegram" className="size-4" />
+                                                </a>
+                                            </>
+                                        ) : <p>Клиент не задан</p>}
+
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {item.client && (
+                                        <NavLink to={`/clients/${item.client.documentId}`} className="flex gap-4 items-center">
+                                            <Avatar>
+                                                {item.client.avatar && <AvatarImage src="https://github.com/shadcn.png" />}
+                                                <AvatarFallback className="font-bold">{item.client.title[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="hidden lg:block font-bold">{item.client.title}</span>
+                                        </NavLink>
+                                    )}
+
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={statusVariants[item.project_status] || 'outline'}>
+                                        {item.project_status}
+                                    </Badge>
+                                </TableCell>
                                 <TableCell className="text-right flex gap-2 justify-end">
                                     <NavLink to={`/projects/${item.documentId}`}>
                                         <Button
@@ -86,13 +109,6 @@ export const ProjectsList = () => {
                                             <EyeIcon className="size-4" />
                                         </Button>
                                     </NavLink>
-
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => handleEdit(item.documentId)}
-                                    >
-                                        <EditIcon className="size-4" />
-                                    </Button>
                                     <Button
                                         variant="destructive"
                                         onClick={() => handleDelete(item.documentId)}

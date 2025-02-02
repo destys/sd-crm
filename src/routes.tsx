@@ -1,13 +1,13 @@
-"use strict";
-
 import { createBrowserRouter } from "react-router";
 import { DashboardPage } from "@/app/dashboard/page";
 import LoginPage from "@/app/login/page";
 import { Layout } from "@/components/ui/layout";
 import PrivateRoute from "@/components/private-route";
-import { ProjectsPage } from "./app/projects/page";
-import { ClientsPage } from "./app/clients/page";
-import { ProjectPage } from "./app/projects/[documentId]/page";
+import { ProjectsPage } from "@/app/projects/page";
+import { ClientsPage } from "@/app/clients/page";
+import { ProjectPage } from "@/app/projects/[documentId]/page";
+import { ClientPage } from "@/app/clients/[documentId]/page";
+import { FinancesPage } from "@/app/finances/page";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +37,14 @@ export const router = createBrowserRouter([
           {
             path: "clients",
             element: <ClientsPage />,
+          },
+          {
+            path: "clients/:documentId",
+            element: <ClientPage />,
+          },
+          {
+            path: "finances",
+            element: <FinancesPage />,
           },
         ],
       },

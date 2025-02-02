@@ -7,7 +7,7 @@ import { useProject } from "@/hooks/use-project";
 import { ProjectDetails } from "@/components/project/project-details";
 import ProjectFinance from "@/components/project/project-finance";
 
-export const ProjectPage = () => {
+export const ClientPage = () => {
     const { documentId } = useParams();
 
     //const { data, deleteProject, isLoading } = useProject(documentId);

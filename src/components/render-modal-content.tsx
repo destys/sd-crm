@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { ModalsWrapper } from "./modals/modals-wrapper";
 import { AddClientModal } from "./modals/add-clients-modal";
 import { ModalConfig } from "@/types/modal.types";
-import { EditProjectsModal } from "./modals/edit-project-modal";
+import { AddProjectModal } from "./modals/add-project-modal";
 
 export const renderModalContent = (type: string, config?: ModalConfig): ReactNode => {
     switch (type) {
@@ -13,10 +13,10 @@ export const renderModalContent = (type: string, config?: ModalConfig): ReactNod
                     <AddClientModal />
                 </ModalsWrapper>
             );
-        case "editProject":
+        case "addProjectModal":
             return (
                 <ModalsWrapper config={config || {}}>
-                    <EditProjectsModal />
+                    <AddProjectModal />
                 </ModalsWrapper>
             );
         default:
