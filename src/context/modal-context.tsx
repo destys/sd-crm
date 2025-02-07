@@ -10,7 +10,7 @@ interface ModalConfig {
 }
 
 interface ModalContextProps {
-    openModal: (type: string, config?: ModalConfig) => void;
+    openModal: (type: string, config?: ModalConfig, data?: never) => void;
     closeModal: () => void;
 }
 

@@ -6,15 +6,18 @@ import { API_URL } from "@/constants";
 
 const apiUrl = `${API_URL}/api/projects`;
 
-// Запросы к API
-const fetchProjects = async (token: string): Promise<ProjectItemProps[]> => {
+// Запросы к API с пагинацией
+const fetchProjects = async ({ token, page = 1, pageSize = 10 }: { token: string; page?: number; pageSize?: number }): Promise<{ data: ProjectItemProps[]; total: number; }> => {
     if (!token) throw new Error("Authentication token is missing");
-    const response = await axios.get(`${apiUrl}?populate=*`, {
+    const response = await axios.get(`${apiUrl}?populate=*&pagination[page]=${page}&pagination[pageSize]=${pageSize}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
-    return response.data.data;
+    return {
+        data: response.data.data,
+        total: response.data.meta.pagination.total,
+    };
 };
 
 const createProject = async ({
@@ -75,16 +78,16 @@ const deleteProject = async ({
     return documentId;
 };
 
-// Хук `useProjects`
-export const useProjects = () => {
+// Хук `useProjects` с пагинацией
+export const useProjects = (page: number, pageSize: number) => {
     const { token } = useAuth();
     const queryClient = useQueryClient();
 
-    const projectsQuery = useQuery<ProjectItemProps[], Error>({
-        queryKey: ["projects"],
+    const projectsQuery = useQuery<{ data: ProjectItemProps[]; total: number }, Error>({
+        queryKey: ["projects", page, pageSize],
         queryFn: () => {
             if (!token) return Promise.reject(new Error("Authentication token is missing"));
-            return fetchProjects(token);
+            return fetchProjects({ token, page, pageSize });
         },
         enabled: !!token, // Выполняем запрос только если есть токен
     });
@@ -94,10 +97,8 @@ export const useProjects = () => {
             if (!token) return Promise.reject(new Error("Authentication token is missing"));
             return createProject({ project, token });
         },
-        onSuccess: (newProject) => {
-            queryClient.setQueryData<ProjectItemProps[]>(["projects"], (oldProjects) => {
-                return oldProjects ? [...oldProjects, newProject] : [newProject];
-            });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["projects", page, pageSize] });
         },
     });
 
@@ -106,14 +107,8 @@ export const useProjects = () => {
             if (!token) return Promise.reject(new Error("Authentication token is missing"));
             return updateProject({ documentId, updatedData, token });
         },
-        onSuccess: (updatedProject) => {
-            queryClient.setQueryData<ProjectItemProps[]>(["projects"], (oldProjects) => {
-                return oldProjects
-                    ? oldProjects.map((project) =>
-                        project.documentId === updatedProject.documentId ? updatedProject : project
-                    )
-                    : [];
-            });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["projects", page, pageSize] });
         },
     });
 
@@ -122,15 +117,14 @@ export const useProjects = () => {
             if (!token) return Promise.reject(new Error("Authentication token is missing"));
             return deleteProject({ documentId, token });
         },
-        onSuccess: (deletedDocumentId) => {
-            queryClient.setQueryData<ProjectItemProps[]>(["projects"], (oldProjects) => {
-                return oldProjects ? oldProjects.filter((project) => project.documentId !== deletedDocumentId) : [];
-            });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["projects", page, pageSize] });
         },
     });
 
     return {
-        data: projectsQuery.data,
+        data: projectsQuery.data?.data,
+        total: projectsQuery.data?.total,
         isLoading: projectsQuery.isLoading,
         isError: projectsQuery.isError,
         error: projectsQuery.error,

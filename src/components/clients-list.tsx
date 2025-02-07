@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Loader2Icon } from "lucide-react";
 
 import {
     Table,
@@ -13,6 +14,7 @@ import { ClientsActions } from "@/components/clients-actions";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 import { useClients } from "@/hooks/use-clients";
+import { ClientRow } from "@/components/client/client-row";
 
 export const ClientsList = () => {
     const [page, setPage] = useState(1);
@@ -29,7 +31,7 @@ export const ClientsList = () => {
                 <TableCaption>Список клиентов</TableCaption>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[100px]">ID</TableHead>
+                        <TableHead className="w-[50px]">ID</TableHead>
                         <TableHead>Имя</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead className="text-right">Телефон</TableHead>
@@ -38,39 +40,41 @@ export const ClientsList = () => {
                 <TableBody>
                     {isLoading ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">Загрузка...</TableCell>
+                            <TableCell colSpan={4} className="text-center">
+                                <div className="flex justify-center">
+                                    <Loader2Icon className=" animate-spin" />
+                                </div>
+                            </TableCell>
                         </TableRow>
                     ) : (
-                        clients?.map((client, index) => (
-                            <TableRow key={client.documentId}>
-                                <TableCell className="font-medium">{index + 1}</TableCell>
-                                <TableCell>{client.title}</TableCell>
-                                <TableCell>{client.email}</TableCell>
-                                <TableCell className="text-right">{client.phone}</TableCell>
-                            </TableRow>
+                        clients?.map((client) => (
+                            <ClientRow data={client} key={client.documentId} />
                         ))
                     )}
                 </TableBody>
             </Table>
 
+
             {/* Пагинация */}
-            <Pagination>
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious onClick={() => setPage((prev) => Math.max(prev - 1, 1))} isActive={page === 1} />
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => (
-                        <PaginationItem key={i}>
-                            <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>
-                                {i + 1}
-                            </PaginationLink>
+            {total && total > pageSize && (
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious onClick={() => setPage((prev) => Math.max(prev - 1, 1))} isActive={page === 1} />
                         </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                        <PaginationNext onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))} isActive={page === totalPages} />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))} isActive={page === totalPages} />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </div>
     )
 }

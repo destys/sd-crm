@@ -4,6 +4,7 @@ import { ModalsWrapper } from "./modals/modals-wrapper";
 import { AddClientModal } from "./modals/add-clients-modal";
 import { ModalConfig } from "@/types/modal.types";
 import { AddProjectModal } from "./modals/add-project-modal";
+import { AddFinanceModal } from "./modals/add-finance-modal";
 
 export const renderModalContent = (type: string, config?: ModalConfig): ReactNode => {
     switch (type) {
@@ -17,6 +18,12 @@ export const renderModalContent = (type: string, config?: ModalConfig): ReactNod
             return (
                 <ModalsWrapper config={config || {}}>
                     <AddProjectModal />
+                </ModalsWrapper>
+            );
+        case "addFinanceModal":
+            return (
+                <ModalsWrapper config={config || {}}>
+                    <AddFinanceModal />
                 </ModalsWrapper>
             );
         default:

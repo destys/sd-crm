@@ -3,15 +3,13 @@ import { Loader2Icon } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { useProject } from "@/hooks/use-project";
-import { ProjectDetails } from "@/components/project/project-details";
-import ProjectFinance from "@/components/project/project-finance";
+import { useClient } from "@/hooks/use-client";
 
 export const ClientPage = () => {
     const { documentId } = useParams();
 
     //const { data, deleteProject, isLoading } = useProject(documentId);
-    const { data, isLoading } = useProject(documentId || '');
+    const { data, isLoading } = useClient(documentId || '');
 
     if (!data) {
         return null;
@@ -20,23 +18,21 @@ export const ClientPage = () => {
     return (
         isLoading ? <Loader2Icon className="animate-spin" /> : (
             <div>
-                <h1>Проект: {data.title}</h1>
+                <h1>Клиент: {data.title}</h1>
 
-                <Tabs defaultValue="details">
+                <Tabs defaultValue="info">
                     <TabsList>
-                        <TabsTrigger value="tasks">Задачи</TabsTrigger>
-                        <TabsTrigger value="details">Детали проекта</TabsTrigger>
-                        <TabsTrigger value="finance">Финансы</TabsTrigger>
-                        <TabsTrigger value="files">Файлы проекта</TabsTrigger>
+                        <TabsTrigger value="info">Информация</TabsTrigger>
+                        <TabsTrigger value="projects">Проекты</TabsTrigger>
+                        <TabsTrigger value="requisites">Реквизиты</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="tasks">Задачи проекта</TabsContent>
-                    <TabsContent value="details">
-                        <ProjectDetails data={data} />
+                    <TabsContent value="info">Задачи проекта</TabsContent>
+                    <TabsContent value="projects">
+                        {/* <ProjectDetails data={data} /> */}
                     </TabsContent>
-                    <TabsContent value="finance">
-                        <ProjectFinance data={data} />
+                    <TabsContent value="requisites">
+                        {/* <ProjectFinance data={data} /> */}
                     </TabsContent>
-                    <TabsContent value="files">Change your password here.</TabsContent>
                 </Tabs>
             </div>
         )

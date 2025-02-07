@@ -6,7 +6,7 @@ import { API_URL } from "@/constants";
 
 const apiUrl = `${API_URL}/api/projects`;
 
-// 🔹 Получение одного проекта по ID
+// 🔹 Получение одного клиента по ID
 const fetchProjectById = async (documentId: string, token: string): Promise<ProjectItemProps> => {
     if (!token) throw new Error("Authentication token is missing");
     const response = await axios.get(`${apiUrl}/${documentId}?populate=*`, {
@@ -15,7 +15,7 @@ const fetchProjectById = async (documentId: string, token: string): Promise<Proj
     return response.data.data;
 };
 
-// 🔹 Хук `useProject` — получение одного проекта по ID
+// 🔹 Хук `useProject` — получение одного клиента по ID
 export const useProject = (documentId: string) => {
     const { token } = useAuth();
     return useQuery<ProjectItemProps, Error>({
@@ -24,11 +24,30 @@ export const useProject = (documentId: string) => {
             if (!token) return Promise.reject(new Error("Authentication token is missing"));
             return fetchProjectById(documentId, token);
         },
-        enabled: !!token && !!documentId, // Запрос выполняется только если есть токен и ID проекта
+        enabled: !!token && !!documentId, // Запрос выполняется только если есть токен и ID клиента
     });
 };
 
-// 🔹 Обновление одного проекта
+// 🔹 Создание нового клиента
+const createProject = async ({
+    projectData,
+    token,
+}: {
+    projectData: Partial<ProjectItemProps>;
+    token: string;
+}): Promise<ProjectItemProps> => {
+    if (!token) throw new Error("Authentication token is missing");
+    const response = await axios.post(
+        apiUrl,
+        { data: projectData },
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+    );
+    return response.data.data;
+};
+
+// 🔹 Обновление клиента
 const updateProject = async ({
     documentId,
     updatedData,
@@ -49,7 +68,7 @@ const updateProject = async ({
     return response.data.data;
 };
 
-// 🔹 Удаление одного проекта
+// 🔹 Удаление клиента
 const deleteProject = async ({
     documentId,
     token,
@@ -64,28 +83,37 @@ const deleteProject = async ({
     return documentId;
 };
 
-// 🔹 Хук для обновления и удаления одного проекта
+// 🔹 Хук для создания, обновления и удаления клиента
 export const useProjectMutations = () => {
     const { token } = useAuth();
-    const queryClient = useQueryClient();
+    const queryProject = useQueryClient();
+
+    const createProjectMutation = useMutation<ProjectItemProps, Error, Partial<ProjectItemProps>>({
+        mutationFn: (projectData) => createProject({ projectData, token: token ?? "" }),
+        onSuccess: (newProject) => {
+            queryProject.setQueryData<ProjectItemProps[]>(["projects"], (oldProjects = []) => [...oldProjects, newProject]);
+            queryProject.invalidateQueries({ queryKey: ["projects"] }); // Обновляем список клиентов
+        },
+    });
 
     const updateProjectMutation = useMutation<ProjectItemProps, Error, { documentId: string; updatedData: Partial<ProjectItemProps> }>({
         mutationFn: ({ documentId, updatedData }) => updateProject({ documentId, updatedData, token: token ?? "" }),
         onSuccess: (updatedProject) => {
-            queryClient.setQueryData<ProjectItemProps>(["project", updatedProject.documentId], updatedProject);
-            queryClient.invalidateQueries({ queryKey: ["projects"] }); // Обновляем список проектов
+            queryProject.setQueryData<ProjectItemProps>(["project", updatedProject.documentId], updatedProject);
+            queryProject.invalidateQueries({ queryKey: ["projects"] }); // Обновляем список клиентов
         },
     });
 
     const deleteProjectMutation = useMutation<string, Error, string>({
         mutationFn: (documentId) => deleteProject({ documentId, token: token ?? "" }),
         onSuccess: (deletedDocumentId) => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] }); // Обновляем список проектов
-            queryClient.removeQueries({ queryKey: ["project", deletedDocumentId] }); // Удаляем кеш одного проекта
+            queryProject.invalidateQueries({ queryKey: ["projects"] }); // Обновляем список клиентов
+            queryProject.removeQueries({ queryKey: ["project", deletedDocumentId] }); // Удаляем кеш одного клиента
         },
     });
 
     return {
+        createProject: createProjectMutation.mutate,
         updateProject: updateProjectMutation.mutate,
         deleteProject: deleteProjectMutation.mutate,
     };

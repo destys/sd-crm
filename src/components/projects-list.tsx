@@ -1,51 +1,33 @@
-import { EyeIcon, Loader2, PhoneOutgoingIcon, Trash2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 
 import {
     Table,
     TableBody,
-    TableCell,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useProjects } from "@/hooks/use-projects";
 
-import { useAlertDialog } from "@/context/alert-dialog-context";
-import { NavLink } from "react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
+import { useState } from "react";
+import { ProjectRow } from "./project/project-row";
 
 export const ProjectsList = () => {
-    const { data, deleteProject, isLoading } = useProjects();
+    const [page, setPage] = useState(1);
+    const pageSize = 25;
+    const { data: projects, total, isLoading } = useProjects(page, pageSize);
 
-    const { showConfirmation } = useAlertDialog();
+    const totalPages = Math.ceil((total || 1) / pageSize);
 
-    const statusVariants: Record<string, 'outline' | 'waiting' | 'default' | 'secondary'> = {
-        'В очереди': 'waiting',
-        'В работе': 'default',
-        'Завершен': 'secondary',
-    };
 
-    const handleDelete = async (projectId: string) => {
-        const confirmed = await showConfirmation({
-            title: "Удаление проекта",
-            description: "Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.",
-            confirmLabel: "Удалить",
-            cancelLabel: "Отмена",
-        });
-
-        if (confirmed) {
-            deleteProject(projectId);
-        }
-    };
 
     return (
         <div>
 
             {isLoading ? (
                 <div className="flex justify-center items-center min-h-96 w-full">
-                    <Loader2 className="animate-spin" />
+                    <Loader2Icon className="animate-spin" />
                 </div>
             ) : (
                 <Table>
@@ -60,66 +42,32 @@ export const ProjectsList = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data?.map((item, index) => (
-                            <TableRow key={item.id}>
-                                <TableCell className="font-medium">{index + 1}</TableCell>
-                                <TableCell className="text-xs lg:text-lg font-bold">{item.title}</TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        {item.client ? (
-                                            <>
-                                                <a href={`tel:${item.client.phone}`} className="flex items-center gap-2 text-sm">
-                                                    <PhoneOutgoingIcon className="flex-shrink-0 basis-4 size-4" />
-                                                    <span className="hidden lg:block">{item.client.phone}</span>
-                                                </a>
-
-                                                <a href={`https://wa.me/${item.client.phone?.replace(/[^+\d]/g, '')}`} target="_blank" className="flex-shrink-0 basis-4">
-                                                    <img src="/whatsapp.png" alt="whatsapp" className="size-4" />
-                                                </a>
-                                                <a href={`https://t.me/${item.client.phone?.replace(/[^+\d]/g, '')}`} target="_blank" className="flex-shrink-0 basis-4">
-                                                    <img src="/telegram.png" alt="telegram" className="size-4" />
-                                                </a>
-                                            </>
-                                        ) : <p>Клиент не задан</p>}
-
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    {item.client && (
-                                        <NavLink to={`/clients/${item.client.documentId}`} className="flex gap-4 items-center">
-                                            <Avatar>
-                                                {item.client.avatar && <AvatarImage src="https://github.com/shadcn.png" />}
-                                                <AvatarFallback className="font-bold">{item.client.title[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="hidden lg:block font-bold">{item.client.title}</span>
-                                        </NavLink>
-                                    )}
-
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={statusVariants[item.project_status] || 'outline'}>
-                                        {item.project_status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right flex gap-2 justify-end">
-                                    <NavLink to={`/projects/${item.documentId}`}>
-                                        <Button
-                                            variant="default"
-                                        >
-                                            <EyeIcon className="size-4" />
-                                        </Button>
-                                    </NavLink>
-                                    <Button
-                                        variant="destructive"
-                                        onClick={() => handleDelete(item.documentId)}
-                                    >
-                                        <Trash2Icon />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                        {projects?.map((item) => (
+                            <ProjectRow data={item} key={item.id} />
                         ))}
                     </TableBody>
                 </Table>
+            )}
+
+            {/* Пагинация */}
+            {total && total > pageSize && (
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious onClick={() => setPage((prev) => Math.max(prev - 1, 1))} isActive={page === 1} />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))} isActive={page === totalPages} />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
             )}
         </div>
     );

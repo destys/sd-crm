@@ -81,7 +81,7 @@ const deleteClient = async ({
 // Хук `useClients` с пагинацией
 export const useClients = (page: number, pageSize: number) => {
     const { token } = useAuth();
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient(); 
 
     const clientsQuery = useQuery<{ data: ClientItemProps[]; total: number }, Error>({
         queryKey: ["clients", page, pageSize],

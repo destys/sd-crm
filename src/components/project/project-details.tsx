@@ -42,7 +42,6 @@ const formSchema = z.object({
 });
 
 export const ProjectDetails = ({ data }: { data: ProjectItemProps }) => {
-    console.log('data: ', data);
     const { updateProject } = useProjectMutations();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
